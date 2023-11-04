@@ -27,38 +27,38 @@ public class Server {
   }
 
   public void run() throws IOException {
-    server = new ServerSocket(port) {
-      protected void finalize() throws IOException {
-        this.close();
-      }
-    };
+    server = new ServerSocket(port);
     System.out.println("Port 12345 is now open.");
 
-    while (true) {
-      // accepts a new client
-      Socket client = server.accept();
+    try {
+      while (!server.isClosed()) {
+        // accepts a new client
+        Socket client = server.accept();
 
-      // get nickname of newUser
-      String nickname = (new Scanner ( client.getInputStream() )).nextLine();
-      nickname = nickname.replace(",", ""); //  ',' use for serialisation
-      nickname = nickname.replace(" ", "_");
-      System.out.println("New Client: \"" + nickname + "\"\n\t     Host:" + client.getInetAddress().getHostAddress());
+        // get nickname of newUser
+        String nickname = (new Scanner ( client.getInputStream() )).nextLine();
+        nickname = nickname.replace(",", ""); //  ',' use for serialisation
+        nickname = nickname.replace(" ", "_");
+        System.out.println("New Client: \"" + nickname + "\"\n\t     Host:" + client.getInetAddress().getHostAddress());
 
-      // create new User
-      User newUser = new User(client, nickname);
+        // create new User
+        User newUser = new User(client, nickname);
 
-      // add newUser message to list
-      this.clients.add(newUser);
+        // add newUser message to list
+        this.clients.add(newUser);
 
-      // Welcome msg
-      newUser.getOutStream().println(
-          "<img src='https://www.google.com/search?q=java&tbm=isch&hl=en-GB&chips=q:java,g_1:logo:pF3ny9I6q7s%3D&sa=X&ved=2ahUKEwjiq4GhhqeCAxW8nycCHV07AO8Q4lYoAnoECAEQKg&biw=1519&bih=739#imgrc=kdcmbBGAGkO9eM' height='42' width='42'>"
-          + "<b>Welcome</b> " + newUser.toString() +
-          "<img src='https://www.google.com/search?q=java&tbm=isch&hl=en-GB&chips=q:java,g_1:logo:pF3ny9I6q7s%3D&sa=X&ved=2ahUKEwjiq4GhhqeCAxW8nycCHV07AO8Q4lYoAnoECAEQKg&biw=1519&bih=739#imgrc=kdcmbBGAGkO9eM' height='42' width='42'>"
-          );
+        // Welcome msg
+        newUser.getOutStream().println(
+                "<img src='https://logos-world.net/wp-content/uploads/2022/07/Java-Logo.png' width='60'>"
+                        + "<b>Welcome</b> " + newUser.toString() +
+                        "<img src='https://logos-world.net/wp-content/uploads/2022/07/Java-Logo.png' width='60'>"
+        );
 
-      // create a new thread for newUser incoming messages handling
-      new Thread(new UserHandler(this, newUser)).start();
+        // create a new thread for newUser incoming messages handling
+        new Thread(new UserHandler(this, newUser)).start();
+      }
+    } catch (IOException e) {
+      server.close();
     }
   }
 

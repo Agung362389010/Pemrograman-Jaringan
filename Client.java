@@ -4,17 +4,15 @@ import java.util.Arrays;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.Scanner;
-import java.io.StringReader;
 
 public class Client {
 
-  private String host;
-  private int port;
+  private final String host;
+  private final int port;
 
-  public static void main(String[] args) throws UnknownHostException, IOException {
-    new Client("127.0.0.1", 12345).run();
+  public static void main(String[] args) throws IOException {
+    new Client("127.0.0.1", 1234).run();
   }
 
   public Client(String host, int port) {
@@ -22,12 +20,12 @@ public class Client {
     this.port = port;
   }
 
-  public void run() throws UnknownHostException, IOException {
+  public void run() throws IOException {
     // connect client to server
     Socket client = new Socket(host, port);
     System.out.println("Client successfully connected to server!");
 
-    // Get Socket output stream (where the client send her mesg)
+    // Get Socket output stream (where the client send his message)
     PrintStream output = new PrintStream(client.getOutputStream());
 
     // ask for a nickname
@@ -58,7 +56,7 @@ public class Client {
 
 class ReceivedMessagesHandler implements Runnable {
 
-  private InputStream server;
+  private final InputStream server;
 
   public ReceivedMessagesHandler(InputStream server) {
     this.server = server;
@@ -67,14 +65,14 @@ class ReceivedMessagesHandler implements Runnable {
   public void run() {
     // receive server messages and print out to screen
     Scanner s = new Scanner(server);
-    String tmp = "";
+    String tmp;
     while (s.hasNextLine()) {
       tmp = s.nextLine();
       if (tmp.charAt(0) == '[') {
         tmp = tmp.substring(1, tmp.length()-1);
         System.out.println(
             "\nUSERS LIST: " +
-            new ArrayList<String>(Arrays.asList(tmp.split(","))) + "\n"
+                    new ArrayList<>(Arrays.asList(tmp.split(","))) + "\n"
             );
       }else{
         try {

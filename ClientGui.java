@@ -1,12 +1,9 @@
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.net.*;
 import java.io.*;
 import javax.swing.*;
-import javax.swing.text.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.html.*;
@@ -106,11 +103,7 @@ public class ClientGui extends Thread{
     });
 
     // Click on send button
-    jsbtn.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent ae) {
-        sendMessage();
-      }
-    });
+    jsbtn.addActionListener(ae -> sendMessage());
 
     // Connection view
     final JTextField jtfName = new JTextField(this.name);
@@ -154,73 +147,68 @@ public class ClientGui extends Thread{
         +"</ul><br/>");
 
     // On connect
-    jcbtn.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent ae) {
-        try {
-          name = jtfName.getText();
-          String port = jtfport.getText();
-          serverName = jtfAddr.getText();
-          PORT = Integer.parseInt(port);
+    jcbtn.addActionListener(ae -> {
+      try {
+        name = jtfName.getText();
+        String port = jtfport.getText();
+        serverName = jtfAddr.getText();
+        PORT = Integer.parseInt(port);
 
-          appendToPane(jtextFilDiscu, "<span>Connecting to " + serverName + " on port " + PORT + "...</span>");
-          server = new Socket(serverName, PORT);
+        appendToPane(jtextFilDiscu, "<span>Connecting to " + serverName + " on port " + PORT + "...</span>");
+        server = new Socket(serverName, PORT);
 
-          appendToPane(jtextFilDiscu, "<span>Connected to " +
-              server.getRemoteSocketAddress()+"</span>");
+        appendToPane(jtextFilDiscu, "<span>Connected to " +
+            server.getRemoteSocketAddress()+"</span>");
 
-          input = new BufferedReader(new InputStreamReader(server.getInputStream()));
-          output = new PrintWriter(server.getOutputStream(), true);
+        input = new BufferedReader(new InputStreamReader(server.getInputStream()));
+        output = new PrintWriter(server.getOutputStream(), true);
 
-          // send nickname to server
-          output.println(name);
+        // send nickname to server
+        output.println(name);
 
-          // create new Read Thread
-          read = new Read();
-          read.start();
-          jfr.remove(jtfName);
-          jfr.remove(jtfport);
-          jfr.remove(jtfAddr);
-          jfr.remove(jcbtn);
-          jfr.add(jsbtn);
-          jfr.add(jtextInputChatSP);
-          jfr.add(jsbtndeco);
-          jfr.revalidate();
-          jfr.repaint();
-          jtextFilDiscu.setBackground(Color.WHITE);
-          jtextListUsers.setBackground(Color.WHITE);
-        } catch (Exception ex) {
-          appendToPane(jtextFilDiscu, "<span>Could not connect to Server</span>");
-          JOptionPane.showMessageDialog(jfr, ex.getMessage());
-        }
+        // create new Read Thread
+        read = new Read();
+        read.start();
+        jfr.remove(jtfName);
+        jfr.remove(jtfport);
+        jfr.remove(jtfAddr);
+        jfr.remove(jcbtn);
+        jfr.add(jsbtn);
+        jfr.add(jtextInputChatSP);
+        jfr.add(jsbtndeco);
+        jfr.revalidate();
+        jfr.repaint();
+        jtextFilDiscu.setBackground(Color.WHITE);
+        jtextListUsers.setBackground(Color.WHITE);
+      } catch (Exception ex) {
+        appendToPane(jtextFilDiscu, "<span>Could not connect to Server</span>");
+        JOptionPane.showMessageDialog(jfr, ex.getMessage());
       }
-
     });
 
     // on deco
-    jsbtndeco.addActionListener(new ActionListener()  {
-      public void actionPerformed(ActionEvent ae) {
-        jfr.add(jtfName);
-        jfr.add(jtfport);
-        jfr.add(jtfAddr);
-        jfr.add(jcbtn);
-        jfr.remove(jsbtn);
-        jfr.remove(jtextInputChatSP);
-        jfr.remove(jsbtndeco);
-        jfr.revalidate();
-        jfr.repaint();
-        read.interrupt();
-        jtextListUsers.setText(null);
-        jtextFilDiscu.setBackground(Color.LIGHT_GRAY);
-        jtextListUsers.setBackground(Color.LIGHT_GRAY);
-        appendToPane(jtextFilDiscu, "<span>Connection closed.</span>");
-        output.close();
-      }
+    jsbtndeco.addActionListener(ae -> {
+      jfr.add(jtfName);
+      jfr.add(jtfport);
+      jfr.add(jtfAddr);
+      jfr.add(jcbtn);
+      jfr.remove(jsbtn);
+      jfr.remove(jtextInputChatSP);
+      jfr.remove(jsbtndeco);
+      jfr.revalidate();
+      jfr.repaint();
+      read.interrupt();
+      jtextListUsers.setText(null);
+      jtextFilDiscu.setBackground(Color.LIGHT_GRAY);
+      jtextListUsers.setBackground(Color.LIGHT_GRAY);
+      appendToPane(jtextFilDiscu, "<span>Connection closed.</span>");
+      output.close();
     });
 
   }
 
-  // check if if all field are not empty
-  public class TextListener implements DocumentListener{
+  // check if all field are not empty
+  public static class TextListener implements DocumentListener{
     JTextField jtf1;
     JTextField jtf2;
     JTextField jtf3;
@@ -236,24 +224,14 @@ public class ClientGui extends Thread{
     public void changedUpdate(DocumentEvent e) {}
 
     public void removeUpdate(DocumentEvent e) {
-      if(jtf1.getText().trim().equals("") ||
-          jtf2.getText().trim().equals("") ||
-          jtf3.getText().trim().equals("")
-          ){
-        jcbtn.setEnabled(false);
-      }else{
-        jcbtn.setEnabled(true);
-      }
+      jcbtn.setEnabled(!jtf1.getText().trim().equals("") &&
+              !jtf2.getText().trim().equals("") &&
+              !jtf3.getText().trim().equals(""));
     }
     public void insertUpdate(DocumentEvent e) {
-      if(jtf1.getText().trim().equals("") ||
-          jtf2.getText().trim().equals("") ||
-          jtf3.getText().trim().equals("")
-          ){
-        jcbtn.setEnabled(false);
-      }else{
-        jcbtn.setEnabled(true);
-      }
+      jcbtn.setEnabled(!jtf1.getText().trim().equals("") &&
+              !jtf2.getText().trim().equals("") &&
+              !jtf3.getText().trim().equals(""));
     }
 
   }
@@ -275,8 +253,8 @@ public class ClientGui extends Thread{
     }
   }
 
-  public static void main(String[] args) throws Exception {
-    ClientGui client = new ClientGui();
+  public static void main(String[] args) {
+    new ClientGui();
   }
 
   // read new incoming messages
@@ -289,9 +267,9 @@ public class ClientGui extends Thread{
           if(message != null){
             if (message.charAt(0) == '[') {
               message = message.substring(1, message.length()-1);
-              ArrayList<String> ListUser = new ArrayList<String>(
-                  Arrays.asList(message.split(", "))
-                  );
+              ArrayList<String> ListUser = new ArrayList<>(
+                      Arrays.asList(message.split(", "))
+              );
               jtextListUsers.setText(null);
               for (String user : ListUser) {
                 appendToPane(jtextListUsers, "@" + user);
